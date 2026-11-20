@@ -1,0 +1,26 @@
+# Render Blueprint - tao Web Service chay bot Discord
+services:
+  - type: web
+    name: discord-bot-gemini
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /healthz
+    envVars:
+      # Ghim Python 3.12: Render moi tao service co the mac dinh 3.13/3.14,
+      # mot so thu vien (audioop, wheel build...) hay loi tren ban moi.
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: PYTHONUNBUFFERED   # de log hien ngay tren Render
+        value: "1"
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+      - key: OWNER_IDS
+        sync: false
+      - key: SUPPORT_CONTACT
+        value: "@admin"
