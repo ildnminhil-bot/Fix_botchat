@@ -37,12 +37,33 @@ class GeminiBot(commands.Bot):
     async def setup_hook(self):
         # Chạy đúng 1 lần trước khi bot kết nối gateway
         for ext in EXTENSIONS:
-            try:
-                await self.load_extension(ext)
-                print(f"[COG] Da nap {ext}")
-            except Exception:
-                print(f"[COG LOI] Khong nap duoc {ext}:")
-                traceback.print_exc()
+            # Thử "cogs.ten" trước; nếu repo để file phẳng (không có thư mục cogs/)
+            # thì tự thử "ten" ở thư mục gốc.
+            flat = ext.split(".")[-1]
+            loaded = False
+            for candidate in (ext, flat):
+                try:
+                    await self.load_extension(candidate)
+                    print(f"[COG] Da nap {candidate}")
+                    loaded = True
+                    break
+                except commands.ExtensionNotFound:
+                    continue
+                except ModuleNotFoundError as e:
+                    # Chỉ bỏ qua nếu thiếu chính module/thư mục cogs; lỗi thiếu thư viện khác thì báo
+                    if e.name in (candidate, "cogs"):
+                        continue
+                    print(f"[COG LOI] {candidate} thieu thu vien: {e}")
+                    traceback.print_exc()
+                    loaded = True
+                    break
+                except Exception:
+                    print(f"[COG LOI] Khong nap duoc {candidate}:")
+                    traceback.print_exc()
+                    loaded = True
+                    break
+            if not loaded:
+                print(f"[COG LOI] Khong tim thay file cho {ext} (da thu {ext} va {flat})")
         if config.SYNC_COMMANDS:
             try:
                 synced = await self.tree.sync()
